@@ -1,0 +1,3 @@
+module github.com/hofstadter-io/cuelm
+
+cue v0.3.0
