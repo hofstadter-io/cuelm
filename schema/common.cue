@@ -4,7 +4,9 @@ package schema
 #Annotations: [string]: string
 
 #Metadata: {
-	name: string
+	// Todo, ensure generateName is set if name is not
+	name?: string
+	generateName?: string
 	namespace?: string
 	labels?: #Labels
 	annotations?: #Annotations

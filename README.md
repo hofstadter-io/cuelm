@@ -24,7 +24,7 @@ Maintain
 
 Out of scope
 
-- Automatic imports, may be able to do something with Helm render and anti-unification.
+- Automatic chart conversions. In the future, may be able to do something with Helm render and anti-unification.
   Could at least import a bunch of values to avoid retyping. Logic is likely out of scope.
 
 
