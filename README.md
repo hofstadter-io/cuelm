@@ -6,15 +6,68 @@ Experiments with CUE for Helm, Terraform, and more
 in the quest to reimagine devops ops.
 
 
-### Goal
+### Goals
 
-Create something like Helm with CUE.
+- single config language spanning from commit to desired state
+- Real packages, imports, references, language constructs
+- Native schemas, defaults, templates, and transformations via Cue
+- consistent, singular source-of-truth (as much as possible anyway)
+- start as glue, replace when appropriate
 
-- Stop writing Yaml files with text/template...
-- Real packages and imports for charts
-- Betters schemas via Cue
-- Easier combinatorics for tenant / environment
-- Better dependency and apply ordering
+
+### Pains
+
+[DevOps' Inferno - The Circles of YamHell](./docs/circles-of-yamhell.md)
+
+- Helm: Yaml files with text/template, ... more ... talked about elsewhere
+- HCL: Terraform, bad language constructs, leaky abstractions (most have this leak)
+
+Generally,
+
+- multiple, tool specific, languages or "enhancements"
+- competing workflows, or tools viaing to be the most important
+
+### Current work
+
+- Dagger to do `cue import k8s`
+- fill in the gaps
+- enrichments (apiVersion,kind) & defaults (show different scales of providing them, schema separate from defaults)
+
+
+- Hof creator to setup using this project
+- publish OCI modules to github for enriched k8s
+  - (make these github.com/hofstadter-io/k8s.io/... explain the hof prefix will go away)
+  - Dagger to publish
+
+- example of a widely used chart side-by-side with the CUE version (especially show the templates) (also cloc)
+- Hof flow to run gen / stacks / charts / helm
+
+---
+
+Try to keep a few implementations, parity not required
+
+- pure CUE
+- hof
+- binary
+
+
+### Design
+
+dimensions
+
+1. leaky abstractions (charts & tf resources), just expose directly
+2. state & reconciliation loop
+
+(1) leaky abstractions and reconciliation
+
+
+(2) state & reconciliation loop implementation
+
+1. leverage underlying tools
+1. cloud and k8s api calls (we should be able to consume any api long term)
+
+
+
 
 Maintain
 
@@ -49,36 +102,4 @@ Out of scope
 
 
 things to add
-
-- Dagger to do `cue import k8s`
-- fill in the gaps
-- enrichments (apiVersion,kind) & defaults (show different scales of providing them, schema separate from defaults)
-
-
-- Hof creator to setup using this project
-- publish OCI modules to github for enriched k8s
-  - (make these github.com/hofstadter-io/k8s.io/... explain the hof prefix will go away)
-  - Dagger to publish
-
-- example of a widely used chart side-by-side with the CUE version (especially show the templates) (also cloc)
-- Hof flow to run gen / stacks / charts / helm
-
-Stages to using CUE &| Helm
-
-1. Schema
-2. Values
-3. Templates
-4. Replacing
-
-- dependencies (CUE)
-- sequencing (flow)
-
-
----
-
-Try to keep a few implementations, parity not required
-
-- pure CUE
-- hof
-- binary
 
