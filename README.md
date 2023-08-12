@@ -1,8 +1,10 @@
 # Cuelm
 
-A pure CUE implementation of Helm
+![latest tag](https://img.shields.io/github/v/tag/hofstadter-io/cuelm)
 
-(WIP)
+Experiments with CUE for Helm, Terraform, and more
+in the quest to reimagine devops ops.
+
 
 ### Goal
 
@@ -40,4 +42,43 @@ Out of scope
 - Probably want to develop own k8s schemas based on the `cue get go` output.
   The gen'd output has some issues, notable ports not mapping to what devs expect.
 
+
+
+----
+
+
+
+things to add
+
+- Dagger to do `cue import k8s`
+- fill in the gaps
+- enrichments (apiVersion,kind) & defaults (show different scales of providing them, schema separate from defaults)
+
+
+- Hof creator to setup using this project
+- publish OCI modules to github for enriched k8s
+  - (make these github.com/hofstadter-io/k8s.io/... explain the hof prefix will go away)
+  - Dagger to publish
+
+- example of a widely used chart side-by-side with the CUE version (especially show the templates) (also cloc)
+- Hof flow to run gen / stacks / charts / helm
+
+Stages to using CUE &| Helm
+
+1. Schema
+2. Values
+3. Templates
+4. Replacing
+
+- dependencies (CUE)
+- sequencing (flow)
+
+
+---
+
+Try to keep a few implementations, parity not required
+
+- pure CUE
+- hof
+- binary
 
