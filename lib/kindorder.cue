@@ -1,6 +1,8 @@
 package lib
 
-#KindInstallMap: { for k, K in #KindInstallOrder { "\(K)": k } }
+// https://github.com/helm/helm/blob/master/pkg/releaseutil/kind_sorter.go
+
+#KindInstallMap: {for k, K in #KindInstallOrder {"\(K)": k}}
 #KindInstallOrder: [
 	"Namespace",
 	"NetworkPolicy",
@@ -38,7 +40,7 @@ package lib
 	"APIService",
 ]
 
-#KindUninstallMap: { for k, K in #KindUninstallOrder { "\(K)": k } }
+#KindUninstallMap: {for k, K in #KindUninstallOrder {"\(K)": k}}
 #KindUninstallOrder: [
 	"APIService",
 	"Ingress",
