@@ -16,3 +16,5 @@ _apiVersion: "networking/v1"
 	kind:       "IngressClass"
 	apiVersion: _apiVersion
 }
+
+#NetworkPolicyPort: port: intstr.#IntOrStringPort

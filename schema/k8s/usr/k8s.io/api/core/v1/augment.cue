@@ -106,3 +106,7 @@ _apiVersion: "v1"
 	kind:       "RangeAllocation"
 	apiVersion: _apiVersion
 }
+
+#HTTPGetAction: port:     intstr.#IntOrStringPort
+#TCPSocketAction: port:   intstr.#IntOrStringPort
+#ServicePort: targetPort: intstr.#IntOrStringPort
