@@ -1,6 +1,8 @@
 			// this comes from providers.json
 provider_schemas: _Provider
 
+_includeDocs: bool | *false @tag(docs,type=bool)
+
 // schema for providers.json
 _Provider: {
 	provider: {
@@ -38,31 +40,25 @@ out: {
 	_v: [ for p in provider_schemas {p}][0]
 	_p: _providerETL & {_in: _v}
 
-	//Provider: _p.provider
+	Provider: _p.provider
 	Resource: {
 		for k, v in _p.resources {
 			(k): v
 		}
 	}
-	//Data: {
-	//  for k, v in _p.data {
-	//    (k): v
-	//  }
-	//}
-
-	//_TF: {
-	//  provider: #Provider
-	//  resource: [string]: #Resource
-	//  data: [string]:     #Data
-	//}
+	Data: {
+		for k, v in _p.data {
+			(k): v
+		}
+	}
 }
 
 _providerETL: {
 	_in: _Provider
 
-	//provider: {
-	//  (_blockETL & {_block: _in.provider.block}).out
-	//}
+	provider: {
+		(_blockETL & {_block: _in.provider.block}).out
+	}
 
 	resources: {
 		for k, v in _in.resource_schemas {
@@ -70,12 +66,68 @@ _providerETL: {
 		}
 	}
 
-	//data: {
-	//  for k, v in _in.data_source_schemas {
-	//    (k): (_blockETL & {_block: v.block} ).out
-	//  }
-	//}
+	data: {
+		for k, v in _in.data_source_schemas {
+			(k): (_blockETL & {_block: v.block} ).out
+		}
+	}
 }
+
+_attrsETL: {
+	_attrs: {}
+	for a, attr in _attrs {
+		(a)?: (_attrETL & {_attr: attr}).out
+		if attr.required != _|_ {
+			(a)!: _
+		}
+		if attr.computed != _|_ {
+			(a)?: _ @calc()
+		}
+		if _includeDocs == true {
+			if attr.description != _|_ {
+				#help: (a): attr.description
+			}
+		}
+	}
+}
+
+//real    1m36.094s
+//user    3m22.133s
+//sys     0m3.868s
+
+_attrETL: {
+	_attr: {}
+	out: _
+
+	if (_attr.type & "number") != _|_ {out: number}
+	if (_attr.type & "string") != _|_ {out: string}
+	if (_attr.type & "bool") != _|_ {out: bool}
+	if (_attr.type & "list") != _|_ {out: [...]}
+	if (_attr.type & "map") != _|_ {out: [string]: string}
+	if (_attr.type & "set") != _|_ {out: [string]: string}
+	if (_attr.type & "object") != _|_ {out: {...}}
+	if (_attr.type & ["list", "number"]) != _|_ {out: [...number]}
+	if (_attr.type & ["list", "string"]) != _|_ {out: [...string]}
+	if (_attr.type & ["map", "string"]) != _|_ {out: [string]: string}
+	if (_attr.type & ["set", "string"]) != _|_ {out: [string]: string}
+	if (_attr.type & ["object", {}]) != _|_ {out: {...}}
+	if (_attr.type & ["list", ["object", {}]]) != _|_ {out: [...]}
+}
+
+_attrTypes:
+	"number" |
+	"bool" |
+	"string" |
+	"list" |
+	"map" |
+	"set" |
+	"object" |
+	["list", "number"] |
+	["list", "string"] |
+	["map", "string"] |
+	["set", "string"] |
+	["object", {}] |
+	["list", ["object", {}]]
 
 _blockETL: {
 	_block: _
@@ -259,57 +311,3 @@ _blockETL: {
 		}
 	}
 }
-
-_attrsETL: {
-	_attrs: {}
-	for a, attr in _attrs {
-		(a)?: (_attrETL & {_attr: attr}).out
-		if attr.required != _|_ {
-			(a)!: _
-		}
-		if attr.computed != _|_ {
-			(a)?: _ @calc()
-		}
-		//if attr.description != _|_ {
-		//  #help: (k): attr.description
-		//}
-	}
-}
-
-//real    1m36.094s
-//user    3m22.133s
-//sys     0m3.868s
-
-_attrETL: {
-	_attr: {}
-	out: _
-
-	if (_attr.type & "number") != _|_ {out: number}
-	if (_attr.type & "string") != _|_ {out: string}
-	if (_attr.type & "bool") != _|_ {out: bool}
-	if (_attr.type & "list") != _|_ {out: [...]}
-	if (_attr.type & "map") != _|_ {out: [string]: string}
-	if (_attr.type & "set") != _|_ {out: [string]: string}
-	if (_attr.type & "object") != _|_ {out: {...}}
-	if (_attr.type & ["list", "number"]) != _|_ {out: [...number]}
-	if (_attr.type & ["list", "string"]) != _|_ {out: [...string]}
-	if (_attr.type & ["map", "string"]) != _|_ {out: [string]: string}
-	if (_attr.type & ["set", "string"]) != _|_ {out: [string]: string}
-	if (_attr.type & ["object", {}]) != _|_ {out: {...}}
-	if (_attr.type & ["list", ["object", {}]]) != _|_ {out: [...]}
-}
-
-_attrTypes:
-	"number" |
-	"bool" |
-	"string" |
-	"list" |
-	"map" |
-	"set" |
-	"object" |
-	["list", "number"] |
-	["list", "string"] |
-	["map", "string"] |
-	["set", "string"] |
-	["object", {}] |
-	["list", ["object", {}]]

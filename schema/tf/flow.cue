@@ -65,19 +65,27 @@ flows: cuetify: {
 	// processes a single provider @ version
 	_fn: {
 		// inputs
-		p:    string
-		v:    string
-		P:    providers[p]
-		V:    string
-		d:    string | *"providers/\(ns)/\(name)/\(ver)/"
+		p: string
+		v: string
+
+		// internal ins
+		P: providers[p]
+		V: string
+		if v == _|_ {
+			V: P.version
+		}
+
+		// internal vars
 		ns:   P.namespace
 		name: P.name
 		ver:  V
+		d:    "providers/\(ns)/\(name)/\(ver)/"
 
-		if v == _|_ {
-			V: P.version
-			d: "providers/\(ns)/\(name)/\(ver)/"
-		}
+		// tasks
+		// 1. mkdir
+		// 2. provider.tf
+		// 3. terraform init & schema
+		// 4. cue eval > tf.cue
 
 		mkdir: {
 			@task(os.Mkdir)
@@ -117,7 +125,6 @@ flows: cuetify: {
 			cmd: ["bash", "-c", _script]
 			_script: """
 				set -euo pipefail
-				pwd
 				terraform providers lock
 				terraform init -input=false -no-color
 				terraform providers schema -json > schema.json
@@ -125,7 +132,15 @@ flows: cuetify: {
 		}
 
 		cue: {
+			@task(os.Exec)
+			$dep: get
 
+			dir: d
+			cmd: ["bash", "-c", _script]
+			_script: """
+				set -euo pipefail
+				cue eval --out cue schema.json ../../../../etl.cue -e out -aA > tf.cue
+				"""
 		}
 
 	}
