@@ -4,9 +4,42 @@
 
 Experiments with CUE for Helm, Terraform, and more
 in the quest to reimagine devops ops.
+This repository has a collection of scripts and files to:
+
+- generating CUE schemas for|from tools & apis
+- enrichments and transformations, everything is a snowflake
+- automation for creating e2e artifacts the CUE community can use
+
+### Currently
+
+you can...
+
+kubernetes:
+
+- schemas and enrichments  ([schema/k8s](./schema/k8s))
+- validate yaml resources
+- generate yaml from CUE
+
+terraform:
+
+- generate TF provider schemas as JSON (reshaping & cuetifying is WIP) ([schema/tf](./schema/tf))
+
+
+You'll need
+[cue](https://cuelang.org/docs),
+[dagger](https://docs.dagger.io),
+and/or [hof](https://docs.hofstadter.io)
+depending on which parts you use.
+We use these tools to automate
+CUE schema generation for all the things.
 
 
 ### Goals
+
+The inspirational idea is to build a CUE based experience
+as we develop code and ship it from developer to user.
+We want to leverage the various tools we already use,
+but also explore where a CUE first approach might yield something better.
 
 - single config language spanning from commit to desired state
 - Real packages, imports, references, language constructs
@@ -42,12 +75,17 @@ Generally,
 - multiple, tool specific, languages or "enhancements"
 - competing workflows, or tools viaing to be the most important
 
+
 ### Current work
 
-- Dagger to do `cue import k8s`
-- fill in the gaps
-- enrichments (apiVersion,kind) & defaults (show different scales of providing them, schema separate from defaults)
+- [x] Dagger to do `cue import k8s`
 
+- fill in the gaps
+  - [x] add schema to ports (was _)
+  - [x] add apiVersion & kind to all k8s objects
+  - [ ] various fields are underspecified, (like ip / cidr)
+
+- defaults (show different scales of providing them, schema separate from defaults)
 
 - Hof creator to setup using this project
 - publish OCI modules to github for enriched k8s
@@ -57,87 +95,10 @@ Generally,
 - example of a widely used chart side-by-side with the CUE version (especially show the templates) (also cloc)
 - Hof flow to run gen / stacks / charts / helm
 
----
-
-Try to keep a few implementations, parity not required
-
-- pure CUE
-- hof
-- binary
-
-
-### Design
-
-dimensions
-
-1. leaky abstractions (charts & tf resources), just expose directly
-2. state & reconciliation loop
-
-(1) leaky abstractions and reconciliation
-
-
-(2) state & reconciliation loop implementation
-
-1. leverage underlying tools
-1. cloud and k8s api calls (we should be able to consume any api long term)
-
-(want to think about CI here too, GHA, Argo, Dagger)
-
-Dagger is interesting because we specify what we want from this commit
-and it works backwards through the DAG, running (or using cache) for
-steps needed to produce our desired outcomes.
-
-Expressing order is not always straight forward in CUE,
-after all, it aims to be order independent.
-The reason it is currently hard is
-
-1. it has to be a list, it is the only construct that has a reliable ordering
-2. there is currently no way to join lists from different places like you can with structs. This will change with associative lists.
-
-There is also CUE's scripting layer, a dynamic DAG engine.
-This is where things can get intersting
-
-(???) How is cue/flow processing same/diff to Dagger
-
-- dagger, you "sync" on a container to produce an output, it lazy evals backwards
-- cue|hof/flow ... make some examples to show how it works
-- topological sort, do we need this if we can find a way to map resource groups to tasks?
-  - helm charts / k8s resources / tf data & resources
-  - ci? argo workflow submission, smaller dagger rather than e2e cli, do the weaving above (but what about caching?)
-
-
-
-Maintain
-
-- Releases concept
-- Diff detection and application
-- Current ordering of resources, with added dep topological sort
-- Most CLI functionality
-- Hooks, but could probably improve
-
-Out of scope
-
-- Automatic chart conversions. In the future, may be able to do something with Helm render and anti-unification.
-  Could at least import a bunch of values to avoid retyping. Logic is likely out of scope.
-
-
 ### Usage
 
 - Setup your project as a Cue module (`hof mod init cue <module name>`)
 - Add this repo to your `cue.mods` file and `hof mod vendor cue`
 - Create Cue files using this ([external example](https://github.com/hofstadter-io/cuetorials.com/blob/main/ci/cuelm.cue))
 - `cue export -e Install | kubectl apply -f -`
-
-### Notes
-
-- Probably want to develop own k8s schemas based on the `cue get go` output.
-  The gen'd output has some issues, notable ports not mapping to what devs expect.
-
-
-
-----
-
-
-
-things to add
 
