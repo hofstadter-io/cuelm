@@ -7,40 +7,48 @@ import (
 )
 
 flows: providers: {
-	@flow(providers)
+	@flow(providers) // a named flow
 
-	_offs: ["0", "100", "200"]
+	_offsets: list.Range(0, 400, 100) // list for looping and indexing
 
 	get: {
-		for off in _offs {
-			(off): {
+		// make parallel request tasks
+		for off in _offsets {
+			// we are building up a value with offset keys to store the req/resp
+			"\(off)": {
 				@task(api.Call)
 				req: {
 					host: "https://registry.terraform.io"
 					path: "/v1/providers?offset=\(off)&limit=100&tier=official,partner"
 				}
-				resp: body: _
+				resp: body: _ // body becomes CUE
 			}
 		}
 	}
 
+	// not a task, CUE between them
+	etl: {
+		// the final data value
+		data: providers: {
+			// join responses, loop over offsets and providers together
+			for off in _offsets for p in get["\(off)"].resp.body.providers {
+				"\(p.namespace)/\(p.name)": p
+			}
+		}
+		// turn into json
+		out: json.Marshal(data)
+	}
+
+	// write to file
 	out: {
 		@task(os.WriteFile)
-		$dep: [ for off in _offs {get[off].resp.body}]
+
+		// dependencies ensure this task waits
+		$dep: [ for off in _offsets {get["\(off)"].resp.body}]
 
 		filename: "providers.json"
-		contents: _calc.str
+		contents: etl.out
 		mode:     0o644
-
-		_calc: {
-			data: providers: {
-				for off in _offs for p in get[off].resp.body.providers {
-					"\(p.namespace)/\(p.name)": p
-				}
-			}
-			str: json.Indent(json.Marshal(data), "", "  ")
-		}
-
 	}
 }
 

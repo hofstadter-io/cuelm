@@ -1,5 +1,5 @@
 module: "github.com/hofstadter-io/cuelm"
-cue: "v0.4.3"
+cue:    "0.6.0"
 
 require: {
 }
