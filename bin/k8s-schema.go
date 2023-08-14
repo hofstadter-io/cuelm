@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"dagger.io/dagger"
 	"github.com/spf13/pflag"
@@ -34,7 +35,7 @@ func init() {
 	pflag.StringVar(&CUE_VERSION, "cue", "0.6.0", "CUE/cue version to use, see https://github.com/cue-lang/cue/tags for available versions")
 	pflag.StringVar(&HOF_VERSION, "hof", "0.6.8", "hof version to use, see https://github.com/hofstadter-io/hof/tags for available versions")
 	pflag.StringVar(&GO_VERSION, "go", "1.20.7", "Go version to use, cannot be newer than CUE or k8s uses")
-	pflag.StringVarP(&OUTDIR, "outdir", "o", "", "where to output files, defaults to the k8s version")
+	pflag.StringVarP(&OUTDIR, "outdir", "o", "", "where to output files, defaults to cue.mod/{gen,usr}")
 }
 
 func main() {
@@ -57,16 +58,23 @@ func main() {
 	c, err = c.With(finalize).Sync(ctx)
 	check(err)
 
-	// output
-	work := c.Directory("/work")
+	// get output
+	gdir := "cue.mod/gen/k8s.io"
+	gk8s := c.Directory(filepath.Join("/work", gdir))
+
+	// write generated output
 	if OUTDIR == "" {
-		OUTDIR = "v" + K8S_VERSION
+		root, err := modroot(".")
+		check(err)
+		OUTDIR = filepath.Join(root, gdir)
 	}
-	ok, err := work.Export(ctx, OUTDIR)
+	ok, err := gk8s.Export(ctx, OUTDIR)
 	check(err)
 	if !ok {
 		fmt.Println("writing !ok")
 	}
+
+	// todo, write cue.mod/usr
 }
 
 func baseImage(client *dagger.Client) (*dagger.Container) {
@@ -152,3 +160,38 @@ func finalize(c *dagger.Container) (*dagger.Container) {
 		WithExec([]string{"tree"})
 }
 
+func modroot(dir string) (string, error) {
+	var err error
+	if dir == "" {
+		dir, err = os.Getwd()
+		if err != nil {
+			return "", err
+		}
+	}
+
+	dir, err = filepath.Abs(dir)
+	if err != nil {
+		return "", err
+	}
+
+	found := false
+
+	for !found && dir != "/" {
+		try := filepath.Join(dir, "cue.mod")
+		info, err := os.Stat(try)
+		if err == nil && info.IsDir() {
+			found = true
+			break
+		}
+
+		next := filepath.Clean(filepath.Join(dir, ".."))
+		dir = next
+	}
+
+	if !found {
+		return "", nil
+		// return "", fmt.Errorf("unable to find CUE module root")
+	}
+
+	return dir, nil
+}
