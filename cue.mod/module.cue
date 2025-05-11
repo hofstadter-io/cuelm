@@ -1,5 +1,7 @@
 module: "github.com/hofstadter-io/cuelm"
-cue:    "0.6.0"
-
-require: {
+language: {
+	version: "v0.13.0"
+}
+source: {
+	kind: "git"
 }
